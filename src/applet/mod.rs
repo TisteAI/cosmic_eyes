@@ -1,7 +1,8 @@
-use cosmic::app::{Command, Core};
+use cosmic::app::Core;
 use cosmic::iced::alignment::{Horizontal, Vertical};
-use cosmic::iced::wayland::popup::{destroy_popup, get_popup};
+use cosmic::iced_sctk::commands::popup::{destroy_popup, get_popup};
 use cosmic::iced::{window, Alignment, Length, Subscription};
+use cosmic::iced::Command;
 use cosmic::iced_runtime::core::window::Id as SurfaceId;
 use cosmic::widget::{self, button};
 use cosmic::{Element, Theme};
@@ -96,7 +97,7 @@ impl cosmic::Application for CosmicEyes {
                     self.popup = Some(new_id);
 
                     let mut popup_settings = self.core.applet.get_popup_settings(
-                        window::Id::MAIN,
+                        window::Id::RESERVED,
                         new_id,
                         None,
                         None,
