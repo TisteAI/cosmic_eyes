@@ -19,11 +19,19 @@ run:
 run-cli *ARGS:
     cargo run --bin cosmic-eyes-cli -- {{ARGS}}
 
-# Install the applet system-wide
-install:
+# Install binaries to ~/.cargo/bin
+install-bins:
     cargo install --path . --locked
+
+# Install system files (requires sudo)
+install-system:
     install -Dm644 res/cosmic-eyes.desktop /usr/share/applications/cosmic-eyes.desktop
     install -Dm644 res/icons/hicolor/scalable/apps/cosmic-eyes.svg /usr/share/icons/hicolor/scalable/apps/cosmic-eyes.svg
+
+# Full install (run install-bins, then sudo just install-system)
+install: install-bins
+    @echo "Binaries installed to ~/.cargo/bin"
+    @echo "Now run: sudo just install-system"
 
 # Run clippy linter
 check:
