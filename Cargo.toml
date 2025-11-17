@@ -1,0 +1,50 @@
+[package]
+name = "cosmic-eyes"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0"
+description = "Break reminder tool for COSMIC Desktop to prevent eye strain and promote healthy work habits"
+authors = ["Your Name <your.email@example.com>"]
+
+[dependencies]
+# COSMIC toolkit
+libcosmic = { git = "https://github.com/pop-os/libcosmic", features = ["applet", "tokio"] }
+
+# CLI interface
+clap = { version = "4.5", features = ["derive"] }
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# Serialization for config
+serde = { version = "1.0", features = ["derive"] }
+ron = "0.8"
+
+# Time handling
+chrono = "0.4"
+
+# System integration
+zbus = "4.0"  # D-Bus for IPC and system integration
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Directories
+dirs = "5.0"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = 0
+
+[[bin]]
+name = "cosmic-eyes"
+path = "src/main.rs"
+
+[[bin]]
+name = "cosmic-eyes-cli"
+path = "src/cli/main.rs"

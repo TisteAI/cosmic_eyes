@@ -1,0 +1,40 @@
+// Example configuration for Cosmic Eyes
+// Copy this to ~/.config/cosmic-eyes/config.ron and customize
+
+Config(
+    // Short break settings
+    short_break: BreakConfig(
+        interval: 20,      // Every 20 minutes
+        duration: 20,      // 20 seconds long
+        enabled: true,
+    ),
+
+    // Long break settings
+    long_break: BreakConfig(
+        interval: 60,      // Every 60 minutes (1 hour)
+        duration: 300,     // 5 minutes long (300 seconds)
+        enabled: true,
+    ),
+
+    // Enable idle detection to pause timers when you're away
+    idle_detection: true,
+
+    // How many seconds of idle time before pausing timers
+    idle_threshold: 300,   // 5 minutes
+
+    // Show notification this many seconds before break starts
+    notification_before_break: 10,
+
+    // Allow users to skip breaks
+    allow_skip: true,
+
+    // Allow users to postpone breaks
+    allow_postpone: true,
+
+    // How many minutes to postpone when postpone is clicked
+    postpone_duration: 5,
+
+    // Strict mode: if true, disables skip and postpone
+    // Useful for enforcing healthy break habits
+    strict_mode: false,
+)
