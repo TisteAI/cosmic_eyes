@@ -1,8 +1,7 @@
 use cosmic::app::Core;
 use cosmic::iced::alignment::{Horizontal, Vertical};
-use cosmic::iced_sctk::commands::popup::{destroy_popup, get_popup};
 use cosmic::iced::{window, Alignment, Length, Subscription};
-use cosmic::iced::Command;
+use cosmic::Command;
 use cosmic::iced_runtime::core::window::Id as SurfaceId;
 use cosmic::widget::{self, button};
 use cosmic::{Element, Theme};
@@ -91,7 +90,7 @@ impl cosmic::Application for CosmicEyes {
         match message {
             Message::TogglePopup => {
                 if let Some(id) = self.popup.take() {
-                    destroy_popup(id)
+                    window::close(id)
                 } else {
                     let new_id = SurfaceId::unique();
                     self.popup = Some(new_id);
@@ -110,7 +109,7 @@ impl cosmic::Application for CosmicEyes {
                         .min_height(200.0)
                         .max_height(600.0);
 
-                    get_popup(popup_settings)
+                    window::get_popup(popup_settings)
                 }
             }
             Message::Tick => {
