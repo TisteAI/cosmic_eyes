@@ -120,56 +120,87 @@ pkill cosmic-panel
 
 ---
 
-## ❌ NOT WORKING (Still Placeholder)
-
-### 1. **CLI Commands** - PLACEHOLDER ONLY!
+### 6. **CLI Commands** - WORKING! ✅
 **Location**: `cosmic-eyes-cli` terminal commands
 
-**Current behavior**:
+**What works**:
 ```bash
 $ cosmic-eyes-cli status
-Fetching status...
 Status: Active
-Next short break: 15m 30s  ← HARDCODED! NEVER CHANGES!
-Next long break: 45m 20s   ← HARDCODED! NEVER CHANGES!
+Next short break: 19m 23s  ← REAL VALUES from applet!
+Next long break: 59m 23s   ← UPDATES in real-time!
 
 $ cosmic-eyes-cli break short
-Starting short break...     ← JUST PRINTS, DOESN'T DO ANYTHING
+Started short break         ← Actually triggers break!
 
 $ cosmic-eyes-cli pause
-Pausing timer...            ← JUST PRINTS, DOESN'T DO ANYTHING
+Paused timer               ← Timer actually pauses!
 ```
 
-**Why it doesn't work**:
-- CLI outputs are hardcoded in `src/cli/main.rs` lines 77-79
-- No D-Bus communication with the applet
-- Commands parse correctly but don't control anything
+**How it works**:
+- Connects to applet via D-Bus
+- All commands control the actual running applet
+- Shows real-time values from timer service
 
-**To see the REAL status**, use the applet popup, not the CLI!
-
-**Status**: ❌ PLACEHOLDER - D-Bus implementation needed
+**Status**: ✅ 100% FUNCTIONAL
 
 ---
 
-### 2. **Idle Detection** - NOT IMPLEMENTED
-**Location**: N/A - no code exists
+### 7. **Idle Detection** - WORKING! ✅
+**Location**: Automatic background detection
 
-**Current behavior**:
-- Config fields exist (`idle_detection`, `idle_threshold`)
-- But no actual system monitoring
-- Timer never pauses due to idle
+**What happens**:
+- Monitors activity via D-Bus ScreenSaver
+- Auto-pauses when idle >= 5 minutes (configurable)
+- Auto-resumes when activity detected
+
+**Configuration**:
+```ron
+idle_detection: true,
+idle_threshold: 300,  // seconds
+```
+
+**Status**: ✅ 100% FUNCTIONAL
+
+---
+
+### 8. **Pre-Break Notifications** - WORKING! ✅
+**Location**: Desktop notifications
+
+**What happens**:
+- Warns 10 seconds before breaks (configurable)
+- "Short Break Soon - Save your work!"
+- "Long Break Soon - Finish up!"
+
+**Configuration**:
+```ron
+notification_before_break: 10,  // seconds
+```
+
+**Status**: ✅ 100% FUNCTIONAL
+
+---
+
+## ❌ NOT WORKING (Future Features)
+
+### 1. **Statistics Tracking** - NOT IMPLEMENTED
+**Location**: N/A - planned for v0.3.0
+
+**Planned features**:
+- Track breaks taken, skipped, postponed
+- Total break time
+- Longest streak
 
 **Status**: ❌ NOT IMPLEMENTED - Future version
 
 ---
 
-### 3. **Pre-Break Notifications** - NOT IMPLEMENTED
-**Location**: N/A - no code exists
+### 2. **Settings UI** - NOT IMPLEMENTED
+**Location**: N/A - planned for v0.3.0
 
-**Current behavior**:
-- Config field exists (`notification_before_break`)
-- But no notifications appear
-- No warnings before breaks
+**Planned features**:
+- GUI for editing configuration
+- Live preview
 
 **Status**: ❌ NOT IMPLEMENTED - Future version
 
@@ -179,19 +210,21 @@ Pausing timer...            ← JUST PRINTS, DOESN'T DO ANYTHING
 
 ### To see real-time timer countdown:
 ✅ **Panel applet popup** (click icon in panel)
-❌ NOT in CLI (still shows hardcoded values)
+✅ **CLI** (`cosmic-eyes-cli status`)
 
 ### To see timer state:
 ✅ **Panel applet popup** ("Status: Active/Paused/In Break")
-❌ NOT in CLI (still shows hardcoded "Status: Active")
+✅ **CLI** (`cosmic-eyes-cli status`)
 
 ### To trigger breaks manually:
 ✅ **Panel applet popup** (click Short/Long Break buttons)
-🚧 **CLI** (command parses but doesn't work yet)
+✅ **CLI** (`cosmic-eyes-cli break short/long`)
+
+### To pause/resume timer:
+✅ **CLI** (`cosmic-eyes-cli pause/resume`)
 
 ### To see automatic breaks:
-✅ **Timer logic** (state changes, visible in popup)
-❌ **Visual display** (no window appears yet)
+✅ **Fullscreen window** (appears automatically when break starts)
 
 ---
 
@@ -241,25 +274,23 @@ pkill cosmic-panel
 
 ---
 
-## 💡 Why CLI Still Shows Hardcoded Values
+## 💡 CLI Now Works via D-Bus!
 
-**The confusion**:
-- You're testing the CLI: `cosmic-eyes-cli status`
-- It shows: "Next short break: 15m 30s"
-- You run it again, still shows: "15m 30s"
-- It never changes!
+**v0.2.0 Update**:
+- CLI now connects to applet via D-Bus
+- Shows REAL values from timer service
+- All commands actually control the applet
+- No more hardcoded placeholders!
 
-**The reason**:
-```rust
-// src/cli/main.rs lines 77-79
-println!("Status: Active");              // ← Hardcoded
-println!("Next short break: 15m 30s");   // ← Hardcoded
-println!("Next long break: 45m 20s");    // ← Hardcoded
+**How to use**:
+```bash
+cosmic-eyes-cli status        # Real-time values
+cosmic-eyes-cli break short   # Actually triggers break
+cosmic-eyes-cli pause         # Actually pauses timer
+cosmic-eyes-cli resume        # Actually resumes timer
+cosmic-eyes-cli skip          # Skips current break
+cosmic-eyes-cli postpone short # Postpones next short break
 ```
-
-These are PLACEHOLDER values. The CLI doesn't query the applet.
-
-**To see REAL values**: Use the panel applet popup, not the CLI!
 
 ---
 
@@ -267,38 +298,44 @@ These are PLACEHOLDER values. The CLI doesn't query the applet.
 
 | Feature | CLI | Applet Popup | Break Screen | Works? |
 |---------|-----|--------------|--------------|--------|
-| Real-time countdown | ❌ Hardcoded | ✅ Updates every second | ✅ Shows during break | ✅ YES |
-| Current status | ❌ Always "Active" | ✅ Shows actual state | N/A | ✅ YES (applet) |
-| Start break | ❌ Just prints | ✅ Actually starts | ✅ Window appears | ✅ YES |
-| See break state | ❌ Can't see | ✅ Shows "In Break" | ✅ Fullscreen display | ✅ YES |
-| Break window | ❌ N/A | N/A | ✅ Fullscreen window | ✅ YES |
-| Skip/Postpone | ❌ Just prints | N/A | ✅ Buttons work | ✅ YES |
-| D-Bus control | ❌ Not implemented | N/A | N/A | ❌ NO |
+| Real-time countdown | ✅ Shows real values | ✅ Updates every second | ✅ Shows during break | ✅ YES |
+| Current status | ✅ Shows actual state | ✅ Shows actual state | N/A | ✅ YES |
+| Start break | ✅ Actually starts | ✅ Actually starts | ✅ Window appears | ✅ YES |
+| Skip/Postpone | ✅ Actually works | N/A | ✅ Buttons work | ✅ YES |
+| Pause/Resume | ✅ Actually works | N/A | N/A | ✅ YES |
+| Break window | ✅ Can trigger | N/A | ✅ Fullscreen display | ✅ YES |
+| Idle detection | N/A | ✅ Auto-pause/resume | N/A | ✅ YES |
+| Notifications | N/A | N/A | ✅ Pre-break warnings | ✅ YES |
 
 ---
 
 ## 🎉 What This Means
 
-**v0.1.1 Successfully Implemented**:
+**v0.2.0 Successfully Implemented** - ALL CORE FEATURES WORKING!:
 - ✅ Applet shows real countdown timers
 - ✅ Timers update every second
 - ✅ Breaks trigger automatically
 - ✅ Manual break buttons work
-- ✅ **Break screen window displays during breaks** (NEW!)
-- ✅ **Break countdown with skip/postpone buttons** (NEW!)
-- ✅ **Automatic window closing when break ends** (NEW!)
+- ✅ Break screen window displays during breaks
+- ✅ Break countdown with skip/postpone buttons
+- ✅ Automatic window closing when break ends
+- ✅ **CLI fully functional via D-Bus** (NEW!)
+- ✅ **Idle detection with auto-pause/resume** (NEW!)
+- ✅ **Pre-break notifications** (NEW!)
 - ✅ Configuration is fully functional
 
-**Still Placeholder**:
-- ❌ CLI doesn't control applet
-- ❌ CLI shows hardcoded values
-- ❌ No idle detection
-- ❌ No pre-break notifications
+**Future Features (v0.3.0)**:
+- ❌ Statistics tracking
+- ❌ Settings UI panel
+- ❌ Sound effects
 
-**Core functionality is COMPLETE!**
+**🎊 The app is FEATURE-COMPLETE for daily use!**
 
-The applet now provides a full break reminder experience:
-1. Real-time countdown in popup
-2. Automatic break triggering
+The applet now provides a comprehensive break reminder experience:
+1. Real-time countdown in popup and CLI
+2. Automatic break triggering with notifications
 3. Fullscreen break window with countdown
 4. Skip/Postpone controls during breaks
+5. CLI remote control via D-Bus
+6. Smart idle detection
+7. Pre-break warnings

@@ -59,6 +59,9 @@ pub struct CosmicEyes {
     break_window: Option<SurfaceId>,
     break_screen: Option<break_screen::BreakScreen>,
     break_remaining: u64,
+    // Notification tracking
+    short_break_notified: bool,
+    long_break_notified: bool,
 }
 
 impl CosmicEyes {
@@ -77,6 +80,8 @@ impl CosmicEyes {
             break_window: None,
             break_screen: None,
             break_remaining: 0,
+            short_break_notified: false,
+            long_break_notified: false,
         }
     }
 
@@ -110,6 +115,15 @@ impl cosmic::Application for CosmicEyes {
 
     fn init(core: Core, config: Self::Flags) -> (Self, Command<Self::Message>) {
         let app = Self::new(config);
+
+        // Start D-Bus service in background
+        let timer = app.timer_service.clone();
+        tokio::spawn(async move {
+            if let Err(e) = crate::dbus::start_service(timer).await {
+                eprintln!("Failed to start D-Bus service: {}", e);
+            }
+        });
+
         (app, Command::none())
     }
 
@@ -142,8 +156,23 @@ impl cosmic::Application for CosmicEyes {
             Message::Tick => {
                 // Query timer service and update display
                 let timer = self.timer_service.clone();
+                let config = self.config.clone();
                 Command::perform(
                     async move {
+                        // Check for idle detection
+                        if config.idle_detection {
+                            let is_idle = crate::idle::is_idle(config.idle_threshold).await;
+                            let state = timer.state().await;
+                            let is_paused = matches!(state, TimerState::Paused);
+
+                            // Auto-pause when idle, auto-resume when active
+                            if is_idle && !is_paused {
+                                timer.pause().await;
+                            } else if !is_idle && is_paused {
+                                timer.resume().await;
+                            }
+                        }
+
                         let short_remaining = timer.time_until_short_break().await;
                         let long_remaining = timer.time_until_long_break().await;
                         let state = timer.state().await;
@@ -166,6 +195,37 @@ impl cosmic::Application for CosmicEyes {
                 // Update display state
                 self.next_short_break = Some(short_remaining);
                 self.next_long_break = Some(long_remaining);
+
+                // Send pre-break notifications
+                let notify_threshold = self.config.notification_before_break as i64;
+
+                // Check short break notification
+                if short_remaining.num_seconds() <= notify_threshold && !self.short_break_notified {
+                    self.short_break_notified = true;
+                    tokio::spawn(async move {
+                        crate::notify::send_notification(
+                            "Short Break Soon",
+                            "Your short break will start soon. Save your work!"
+                        ).await;
+                    });
+                } else if short_remaining.num_seconds() > notify_threshold + 10 {
+                    // Reset notification flag when timer is well above threshold
+                    self.short_break_notified = false;
+                }
+
+                // Check long break notification
+                if long_remaining.num_seconds() <= notify_threshold && !self.long_break_notified {
+                    self.long_break_notified = true;
+                    tokio::spawn(async move {
+                        crate::notify::send_notification(
+                            "Long Break Soon",
+                            "Your long break will start soon. Finish up what you're doing!"
+                        ).await;
+                    });
+                } else if long_remaining.num_seconds() > notify_threshold + 10 {
+                    // Reset notification flag when timer is well above threshold
+                    self.long_break_notified = false;
+                }
 
                 // Check if we're entering a break state
                 let entering_break = !matches!(self.timer_state, TimerState::InBreak(_))
