@@ -1,7 +1,7 @@
-use cosmic::app::Core;
+use cosmic::app::{Core, Task};
 use cosmic::iced::alignment::{Horizontal, Vertical};
 use cosmic::iced::{window, Alignment, Length, Subscription};
-use cosmic::Command;
+use cosmic::surface::action;
 use cosmic::iced_runtime::core::window::Id as SurfaceId;
 use cosmic::widget::{self, button};
 use cosmic::{Element, Theme};
@@ -29,6 +29,8 @@ pub enum Message {
     ConfigChanged(Config),
     /// Popup closed
     PopupClosed(SurfaceId),
+    /// Surface action (for popups)
+    Surface(cosmic::surface::Action),
 }
 
 /// The applet state
@@ -81,84 +83,92 @@ impl cosmic::Application for CosmicEyes {
         &mut self.core
     }
 
-    fn init(core: Core, config: Self::Flags) -> (Self, Command<Self::Message>) {
+    fn init(core: Core, config: Self::Flags) -> (Self, Task<Self::Message>) {
         let app = Self::new(config);
-        (app, Command::none())
+        (app, Task::none())
     }
 
-    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+    fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
         match message {
             Message::TogglePopup => {
                 if let Some(id) = self.popup.take() {
-                    window::close(id)
+                    return self.update(Message::Surface(action::destroy_popup(id)));
                 } else {
-                    let new_id = SurfaceId::unique();
-                    self.popup = Some(new_id);
-
-                    let mut popup_settings = self.core.applet.get_popup_settings(
-                        window::Id::RESERVED,
-                        new_id,
-                        None,
-                        None,
+                    let popup_action = action::app_popup::<Self>(
+                        |state| {
+                            let new_id = SurfaceId::unique();
+                            state.popup = Some(new_id);
+                            let mut popup_settings = state.core.applet.get_popup_settings(
+                                state.core.main_window_id().unwrap(),
+                                new_id,
+                                None,
+                                None,
+                                None,
+                            );
+                            popup_settings.positioner.size_limits = cosmic::iced::Limits::NONE
+                                .min_width(300.0)
+                                .max_width(400.0)
+                                .min_height(200.0)
+                                .max_height(600.0);
+                            popup_settings
+                        },
                         None,
                     );
-
-                    popup_settings.positioner.size_limits = cosmic::iced::Limits::NONE
-                        .min_width(300.0)
-                        .max_width(400.0)
-                        .min_height(200.0)
-                        .max_height(600.0);
-
-                    window::get_popup(popup_settings)
+                    return self.update(Message::Surface(popup_action));
                 }
+            }
+            Message::Surface(action) => {
+                return cosmic::task::message(cosmic::Action::Cosmic(
+                    cosmic::app::Action::Surface(action),
+                ));
             }
             Message::Tick => {
                 // Timer logic handled by subscription
-                Command::none()
+                Task::none()
             }
             Message::StartBreak(break_type) => {
                 // Start break immediately
                 let timer = self.timer_service.clone();
-                Command::perform(
+                Task::perform(
                     async move {
                         timer.start_break(break_type).await;
                     },
-                    |_| Message::Tick,
+                    |_| cosmic::Action::App(Message::Tick),
                 )
             }
             Message::SkipBreak => {
                 let timer = self.timer_service.clone();
-                Command::perform(
+                Task::perform(
                     async move {
                         timer.skip_break().await;
                     },
-                    |_| Message::Tick,
+                    |_| cosmic::Action::App(Message::Tick),
                 )
             }
             Message::PostponeBreak(break_type) => {
                 let timer = self.timer_service.clone();
-                Command::perform(
+                Task::perform(
                     async move {
                         timer.postpone_break(break_type).await;
                     },
-                    |_| Message::Tick,
+                    |_| cosmic::Action::App(Message::Tick),
                 )
             }
             Message::ConfigChanged(new_config) => {
                 self.config = new_config.clone();
                 let timer = self.timer_service.clone();
-                Command::perform(
+                Task::perform(
                     async move {
                         timer.update_config(new_config).await;
                     },
-                    |_| Message::Tick,
+                    |_| cosmic::Action::App(Message::Tick),
                 )
             }
             Message::PopupClosed(id) => {
                 if self.popup == Some(id) {
                     self.popup = None;
                 }
-                Command::none()
+                Task::none()
             }
         }
     }

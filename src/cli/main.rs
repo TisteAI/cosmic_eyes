@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use zbus::{Connection, Result};
+use zbus::Result;
 
 /// CLI interface for Cosmic Eyes break reminder
 #[derive(Parser)]
