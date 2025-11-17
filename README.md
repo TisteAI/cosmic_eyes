@@ -12,9 +12,9 @@ Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the grou
 
 ## ✨ Features
 
-### Current Features (v0.1.0)
+### Current Features (v0.1.1)
 
-> **Note**: v0.1.0 is an alpha release establishing the project architecture. Some features are implemented as core logic but require integration work for full functionality.
+> **Status Update**: v0.1.1 implements core timer functionality! The applet now shows real-time countdowns and automatically triggers breaks. See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for detailed implementation tracking.
 
 - **Dual Break System** ✅
   - Short breaks: Quick eye rest (default: every 20 min, 20 sec)
@@ -27,11 +27,19 @@ Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the grou
   - Strict mode support in configuration
   - Break state management (Running, Paused, InBreak, Postponed)
 
-- **COSMIC Panel Integration** 🚧
+- **COSMIC Panel Integration** ✅ **[NEW in v0.1.1]**
   - Native applet with icon in panel ✅
   - Hover popup with quick controls ✅
+  - **Real-time timer display** ✅ **[IMPLEMENTED]**
+    - Shows countdown to next short break
+    - Shows countdown to next long break
+    - Updates every second
+    - Displays current state (Active/Paused/In Break)
+  - **Automatic break triggering** ✅ **[IMPLEMENTED]**
+    - Breaks start automatically when timers expire
+    - No manual intervention needed
   - Quick action buttons for manual breaks ✅
-  - Real-time timer display (integration pending)
+  - 🚧 Break screen window display (component ready, integration pending)
 
 - **Break Screen UI** ✅
   - Fullscreen break overlay component
@@ -51,11 +59,11 @@ Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the grou
   - Customizable break intervals and durations
   - Auto-save and auto-load functionality
 
-- **Planned Integration Work** 🚧
+- **Pending Integration** 🚧
+  - Break screen window display (next priority)
+  - CLI-to-applet D-Bus communication
   - Idle detection (config ready, system integration pending)
   - Pre-break notifications (config ready, implementation pending)
-  - Automatic break triggering (logic ready, subscription integration pending)
-  - CLI-to-applet D-Bus communication
 
 ### Planned Features
 
