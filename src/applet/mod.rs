@@ -42,6 +42,8 @@ pub enum Message {
     BreakScreenAction(break_screen::Message),
     /// Break countdown tick
     BreakTick,
+    /// Surface action (for popups)
+    Surface(cosmic::surface::Action),
 }
 
 /// The applet state
@@ -257,9 +259,6 @@ impl cosmic::Application for CosmicEyes {
                         ));
                         self.break_remaining = duration_seconds;
 
-                        let new_id = SurfaceId::unique();
-                        self.break_window = Some(new_id);
-
                         let window_settings = window::Settings {
                             size: cosmic::iced::Size::new(800.0, 600.0),
                             position: window::Position::Centered,
@@ -268,7 +267,9 @@ impl cosmic::Application for CosmicEyes {
                             ..Default::default()
                         };
 
-                        return window::spawn(new_id, window_settings);
+                        let (window_id, task) = window::open(window_settings);
+                        self.break_window = Some(window_id);
+                        return task.discard();
                     }
                 }
 
@@ -333,14 +334,14 @@ impl cosmic::Application for CosmicEyes {
                     self.break_screen = None;
                     // End the break in timer service
                     let timer = self.timer_service.clone();
-                    return Command::perform(
+                    return Task::perform(
                         async move {
                             timer.end_break().await;
                         },
-                        |_| Message::Tick,
+                        |_| cosmic::Action::App(Message::Tick),
                     );
                 }
-                Command::none()
+                Task::none()
             }
             Message::BreakScreenAction(action) => {
                 match action {
@@ -350,13 +351,13 @@ impl cosmic::Application for CosmicEyes {
                             self.break_window = None;
                             self.break_screen = None;
                             let timer = self.timer_service.clone();
-                            return Command::batch(vec![
+                            return Task::batch(vec![
                                 window::close(window_id),
-                                Command::perform(
+                                Task::perform(
                                     async move {
                                         timer.skip_break().await;
                                     },
-                                    |_| Message::Tick,
+                                    |_| cosmic::Action::App(Message::Tick),
                                 ),
                             ]);
                         }
@@ -369,13 +370,13 @@ impl cosmic::Application for CosmicEyes {
                                 self.break_window = None;
                                 self.break_screen = None;
                                 let timer = self.timer_service.clone();
-                                return Command::batch(vec![
+                                return Task::batch(vec![
                                     window::close(window_id),
-                                    Command::perform(
+                                    Task::perform(
                                         async move {
                                             timer.postpone_break(break_type).await;
                                         },
-                                        |_| Message::Tick,
+                                        |_| cosmic::Action::App(Message::Tick),
                                     ),
                                 ]);
                             }
@@ -393,7 +394,7 @@ impl cosmic::Application for CosmicEyes {
                         // This is handled by BreakTick message
                     }
                 }
-                Command::none()
+                Task::none()
             }
             Message::BreakTick => {
                 // Update break countdown
@@ -409,19 +410,19 @@ impl cosmic::Application for CosmicEyes {
                             self.break_window = None;
                             self.break_screen = None;
                             let timer = self.timer_service.clone();
-                            return Command::batch(vec![
+                            return Task::batch(vec![
                                 window::close(window_id),
-                                Command::perform(
+                                Task::perform(
                                     async move {
                                         timer.end_break().await;
                                     },
-                                    |_| Message::Tick,
+                                    |_| cosmic::Action::App(Message::Tick),
                                 ),
                             ]);
                         }
                     }
                 }
-                Command::none()
+                Task::none()
             }
         }
     }
