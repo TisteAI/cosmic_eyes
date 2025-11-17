@@ -107,7 +107,13 @@ sudo just install
 
 4. Restart COSMIC Panel:
 ```bash
-systemctl --user restart cosmic-panel
+# Method 1: Kill the panel process (recommended - session manager will restart it)
+pkill cosmic-panel
+
+# Method 2: If using systemd session
+systemctl --user restart cosmic-session
+
+# Method 3: Log out and log back in to COSMIC Desktop
 ```
 
 The Cosmic Eyes icon should now appear in your COSMIC Panel!

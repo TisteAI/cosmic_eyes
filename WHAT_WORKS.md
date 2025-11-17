@@ -47,7 +47,7 @@ Quick Actions
    nano ~/.config/cosmic-eyes/config.ron
    # Change: interval: 1,  (1 minute instead of 20)
    ```
-2. Restart applet: `systemctl --user restart cosmic-panel`
+2. Restart applet: `pkill cosmic-panel` (session manager will restart it)
 3. Open popup and watch countdown
 4. When it reaches 0, status changes to "In short break"
 5. Fullscreen break window appears automatically!
@@ -98,7 +98,7 @@ short_break: BreakConfig(
 ),
 
 # Restart applet
-systemctl --user restart cosmic-panel
+pkill cosmic-panel
 
 # New values are loaded and used!
 ```
@@ -220,7 +220,7 @@ nano ~/.config/cosmic-eyes/config.ron
 # Change short_break interval to: 1 (minute)
 
 # 2. Restart applet
-systemctl --user restart cosmic-panel
+pkill cosmic-panel
 
 # 3. Open popup (click Cosmic Eyes icon)
 # You'll see: "Short break: 0m 59s"
