@@ -95,11 +95,13 @@ impl BreakScreen {
             content = content.push(buttons);
         }
 
+        // Use styled container with solid background
         container(content)
             .width(Length::Fill)
             .height(Length::Fill)
             .center_x(Length::Fill)
             .center_y(Length::Fill)
+            .style(cosmic::theme::Container::default())
             .into()
     }
 

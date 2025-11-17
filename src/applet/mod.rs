@@ -262,8 +262,9 @@ impl cosmic::Application for CosmicEyes {
 
                         let window_settings = window::Settings {
                             size: cosmic::iced::Size::new(800.0, 600.0),
-                            position: window::Position::Centered,
-                            decorations: false,
+                            position: window::Position::Default,
+                            decorations: true,
+                            resizable: true,
                             exit_on_close_request: false,
                             ..Default::default()
                         };
