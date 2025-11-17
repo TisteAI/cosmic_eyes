@@ -1,5 +1,25 @@
 use clap::{Parser, Subcommand};
-use zbus::Result;
+use zbus::{proxy, Connection};
+
+/// D-Bus service name
+const SERVICE_NAME: &str = "com.github.cosmiceyes";
+/// D-Bus object path
+const OBJECT_PATH: &str = "/com/github/cosmiceyes";
+
+/// D-Bus proxy for timer interface
+#[proxy(
+    interface = "com.github.cosmiceyes.Timer",
+    default_service = "com.github.cosmiceyes",
+    default_path = "/com/github/cosmiceyes"
+)]
+trait Timer {
+    async fn start_break(&self, break_type: &str) -> zbus::Result<()>;
+    async fn skip_break(&self) -> zbus::Result<()>;
+    async fn postpone_break(&self, break_type: &str) -> zbus::Result<()>;
+    async fn pause(&self) -> zbus::Result<()>;
+    async fn resume(&self) -> zbus::Result<()>;
+    async fn get_status(&self) -> zbus::Result<(String, i64, i64)>;
+}
 
 /// CLI interface for Cosmic Eyes break reminder
 #[derive(Parser)]
@@ -37,92 +57,96 @@ enum Commands {
 
     /// Resume the timer
     Resume,
-
-    /// Show configuration
-    Config,
-
-    /// Set configuration values
-    Set {
-        /// Configuration key to set
-        key: String,
-        /// Value to set
-        value: String,
-    },
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
     let cli = Cli::parse();
 
-    // TODO: Implement D-Bus communication with the applet
-    // For now, print what would be done
+    // Connect to D-Bus and create proxy
+    let connection = match Connection::session().await {
+        Ok(conn) => conn,
+        Err(e) => {
+            eprintln!("Failed to connect to D-Bus: {}", e);
+            eprintln!("Make sure the cosmic-eyes applet is running.");
+            std::process::exit(1);
+        }
+    };
 
-    match cli.command {
+    let proxy = match TimerProxy::new(&connection).await {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("Failed to connect to cosmic-eyes service: {}", e);
+            eprintln!("Make sure the cosmic-eyes applet is running.");
+            std::process::exit(1);
+        }
+    };
+
+    // Execute command
+    let result = match cli.command {
         Commands::Break { break_type } => {
-            println!("Starting {} break...", break_type);
-            // send_dbus_command("StartBreak", &break_type).await?;
+            proxy.start_break(&break_type).await
+                .map(|_| format!("Started {} break", break_type))
         }
         Commands::Skip => {
-            println!("Skipping current break...");
-            // send_dbus_command("SkipBreak", "").await?;
+            proxy.skip_break().await
+                .map(|_| "Skipped current break".to_string())
         }
         Commands::Postpone { break_type } => {
-            println!("Postponing {} break...", break_type);
-            // send_dbus_command("PostponeBreak", &break_type).await?;
+            proxy.postpone_break(&break_type).await
+                .map(|_| format!("Postponed {} break", break_type))
         }
         Commands::Status => {
-            println!("Fetching status...");
-            // let status = get_dbus_status().await?;
-            // println!("{}", status);
-            println!("Status: Active");
-            println!("Next short break: 15m 30s");
-            println!("Next long break: 45m 20s");
+            match proxy.get_status().await {
+                Ok((state, short_secs, long_secs)) => {
+                    let state_display = match state.as_str() {
+                        "Running" => "Active",
+                        "Paused" => "Paused",
+                        "InBreak:Short" => "In short break",
+                        "InBreak:Long" => "In long break",
+                        "Postponed" => "Break postponed",
+                        _ => &state,
+                    };
+
+                    let short_display = format_duration(short_secs);
+                    let long_display = format_duration(long_secs);
+
+                    Ok(format!(
+                        "Status: {}\nNext short break: {}\nNext long break: {}",
+                        state_display, short_display, long_display
+                    ))
+                }
+                Err(e) => Err(e),
+            }
         }
         Commands::Pause => {
-            println!("Pausing timer...");
-            // send_dbus_command("Pause", "").await?;
+            proxy.pause().await
+                .map(|_| "Paused timer".to_string())
         }
         Commands::Resume => {
-            println!("Resuming timer...");
-            // send_dbus_command("Resume", "").await?;
+            proxy.resume().await
+                .map(|_| "Resumed timer".to_string())
         }
-        Commands::Config => {
-            println!("Current configuration:");
-            // let config = get_dbus_config().await?;
-            // println!("{:#?}", config);
-            println!("Short break: every 20 minutes, 20 seconds");
-            println!("Long break: every 60 minutes, 5 minutes");
-            println!("Idle detection: enabled");
-        }
-        Commands::Set { key, value } => {
-            println!("Setting {} = {}", key, value);
-            // send_dbus_command("SetConfig", &format!("{}={}", key, value)).await?;
+    };
+
+    // Print result or error
+    match result {
+        Ok(msg) => println!("{}", msg),
+        Err(e) => {
+            eprintln!("Command failed: {}", e);
+            std::process::exit(1);
         }
     }
-
-    Ok(())
 }
 
-// D-Bus interface implementation will be added here
-// This will communicate with the running applet instance
+/// Format seconds into human-readable duration
+fn format_duration(seconds: i64) -> String {
+    let minutes = seconds / 60;
+    let secs = seconds % 60;
 
-#[allow(dead_code)]
-async fn send_dbus_command(command: &str, arg: &str) -> Result<()> {
-    // TODO: Implement D-Bus communication
-    // let connection = Connection::session().await?;
-    // let proxy = connection.object_server();
-    // ...
-    Ok(())
-}
-
-#[allow(dead_code)]
-async fn get_dbus_status() -> Result<String> {
-    // TODO: Implement D-Bus communication
-    Ok("Status placeholder".to_string())
-}
-
-#[allow(dead_code)]
-async fn get_dbus_config() -> Result<String> {
-    // TODO: Implement D-Bus communication
-    Ok("Config placeholder".to_string())
+    if minutes > 0 {
+        format!("{}m {}s", minutes, secs)
+    } else {
+        format!("{}s", secs)
+    }
 }

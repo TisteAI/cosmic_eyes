@@ -384,7 +384,8 @@ RUST_LOG=debug cosmic-eyes
 
 1. **Applet doesn't appear in panel**
    - Check desktop entry installed correctly
-   - Restart COSMIC Panel: `systemctl --user restart cosmic-panel`
+   - Restart COSMIC Panel: `pkill cosmic-panel` (session manager will restart it)
+   - Or restart session: `systemctl --user restart cosmic-session`
 
 2. **Configuration not loading**
    - Check `~/.config/cosmic-eyes/config.ron` syntax
