@@ -19,6 +19,12 @@ pub enum Message {
     TogglePopup,
     /// Update timer tick
     Tick,
+    /// Timer state updated
+    TimerUpdate {
+        short_remaining: chrono::Duration,
+        long_remaining: chrono::Duration,
+        state: TimerState,
+    },
     /// Start a break immediately
     StartBreak(BreakType),
     /// Skip current break
@@ -38,6 +44,10 @@ pub struct CosmicEyes {
     config: Config,
     popup: Option<SurfaceId>,
     icon_name: String,
+    // Timer display state
+    next_short_break: Option<chrono::Duration>,
+    next_long_break: Option<chrono::Duration>,
+    timer_state: TimerState,
 }
 
 impl CosmicEyes {
@@ -50,6 +60,9 @@ impl CosmicEyes {
             config,
             popup: None,
             icon_name: "cosmic-eyes-symbolic".to_string(),
+            next_short_break: None,
+            next_long_break: None,
+            timer_state: TimerState::Running,
         }
     }
 
@@ -113,7 +126,33 @@ impl cosmic::Application for CosmicEyes {
                 }
             }
             Message::Tick => {
-                // Timer logic handled by subscription
+                // Query timer service and update display
+                let timer = self.timer_service.clone();
+                Command::perform(
+                    async move {
+                        let short_remaining = timer.time_until_short_break().await;
+                        let long_remaining = timer.time_until_long_break().await;
+                        let state = timer.state().await;
+
+                        // Check if it's time for a break
+                        if let Some(break_type) = timer.check_break_time().await {
+                            timer.start_break(break_type).await;
+                        }
+
+                        Message::TimerUpdate {
+                            short_remaining,
+                            long_remaining,
+                            state,
+                        }
+                    },
+                    |msg| msg,
+                )
+            }
+            Message::TimerUpdate { short_remaining, long_remaining, state } => {
+                // Update display state
+                self.next_short_break = Some(short_remaining);
+                self.next_long_break = Some(long_remaining);
+                self.timer_state = state;
                 Command::none()
             }
             Message::StartBreak(break_type) => {
@@ -174,8 +213,26 @@ impl cosmic::Application for CosmicEyes {
     fn view_window(&self, _id: SurfaceId) -> Element<Self::Message> {
         let spacing = cosmic::theme::active().cosmic().spacing;
 
-        // Get current timer information
-        let timer_service = self.timer_service.clone();
+        // Format timer display
+        let short_text = if let Some(duration) = self.next_short_break {
+            format!("Short break: {}", Self::format_duration(duration))
+        } else {
+            "Short break: calculating...".to_string()
+        };
+
+        let long_text = if let Some(duration) = self.next_long_break {
+            format!("Long break: {}", Self::format_duration(duration))
+        } else {
+            "Long break: calculating...".to_string()
+        };
+
+        let status_text = match &self.timer_state {
+            TimerState::Running => "Status: Active",
+            TimerState::Paused => "Status: Paused",
+            TimerState::InBreak(BreakType::Short) => "Status: In short break",
+            TimerState::InBreak(BreakType::Long) => "Status: In long break",
+            TimerState::Postponed => "Status: Break postponed",
+        };
 
         let content = widget::column()
             .spacing(spacing.space_m)
@@ -192,8 +249,9 @@ impl cosmic::Application for CosmicEyes {
             .push(
                 widget::column()
                     .spacing(spacing.space_s)
-                    .push(widget::text("Next break: Loading..."))
-                    .push(widget::text("Status: Active"))
+                    .push(widget::text(short_text))
+                    .push(widget::text(long_text))
+                    .push(widget::text(status_text))
             )
             .push(widget::divider::horizontal::default())
             .push(
