@@ -14,39 +14,48 @@ Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the grou
 
 ### Current Features (v0.1.0)
 
-- **Dual Break System**
+> **Note**: v0.1.0 is an alpha release establishing the project architecture. Some features are implemented as core logic but require integration work for full functionality.
+
+- **Dual Break System** ✅
   - Short breaks: Quick eye rest (default: every 20 min, 20 sec)
   - Long breaks: Extended rest with stretching (default: every 60 min, 5 min)
-  - Independently configurable timers
+  - Independently configurable timers with thread-safe state management
 
-- **Flexible Break Control**
-  - Start breaks ahead of time
-  - Skip breaks when needed (configurable)
-  - Postpone breaks by a set duration (configurable)
-  - Strict mode to enforce breaks without skip/postpone
+- **Flexible Break Control** ✅
+  - Timer logic for starting, skipping, and postponing breaks
+  - Configurable skip/postpone permissions
+  - Strict mode support in configuration
+  - Break state management (Running, Paused, InBreak, Postponed)
 
-- **COSMIC Panel Integration**
-  - Native applet with icon in panel
-  - Hover popup with quick controls and status
-  - Shows time until next break
-  - Quick action buttons for manual breaks
+- **COSMIC Panel Integration** 🚧
+  - Native applet with icon in panel ✅
+  - Hover popup with quick controls ✅
+  - Quick action buttons for manual breaks ✅
+  - Real-time timer display (integration pending)
 
-- **CLI Interface**
-  - Control breaks from terminal
-  - Check timer status
-  - Manage configuration
-  - Perfect for scripting and automation
+- **Break Screen UI** ✅
+  - Fullscreen break overlay component
+  - Countdown timer display
+  - Contextual messages for break types
+  - Optional skip/postpone buttons (respects configuration)
 
-- **Smart Timer Management**
-  - Idle detection to pause timers
-  - Countdown display during breaks
-  - Pre-break notifications
+- **CLI Interface** 🚧
+  - Command structure with clap-based argument parsing ✅
+  - Subcommands defined (break, skip, postpone, status, etc.) ✅
+  - D-Bus IPC architecture designed (implementation pending)
+  - Currently outputs placeholder messages
 
-- **Configurable Settings**
+- **Configuration System** ✅
+  - RON-based human-readable configuration
+  - Persistent storage in `~/.config/cosmic-eyes/config.ron`
   - Customizable break intervals and durations
-  - Toggle idle detection
-  - Control skip/postpone permissions
-  - Persistent configuration
+  - Auto-save and auto-load functionality
+
+- **Planned Integration Work** 🚧
+  - Idle detection (config ready, system integration pending)
+  - Pre-break notifications (config ready, implementation pending)
+  - Automatic break triggering (logic ready, subscription integration pending)
+  - CLI-to-applet D-Bus communication
 
 ### Planned Features
 
@@ -106,22 +115,27 @@ just run
 ### Panel Applet
 
 - **Click/Hover** the Cosmic Eyes icon in your panel to open controls
-- **Start Break**: Click "Short Break" or "Long Break" to start immediately
-- **View Status**: See time remaining until next break
+- **Start Break**: Click "Short Break" or "Long Break" buttons to trigger breaks manually
+- **View Timer** (integration pending): Real-time countdown display coming in future update
 
 ### During a Break
 
-When a break starts:
-- Screen is blanked with a countdown timer
-- Shows break type and suggested activity
-- Options to **Skip** or **Postpone** (if enabled in config)
+The break screen component provides:
+- Fullscreen overlay with countdown timer
+- Break type indication and suggested activity messages
+- Optional **Skip** or **Postpone** buttons (if enabled in config)
+
+> **Note**: Break triggering integration is in progress. Manual break activation via UI buttons is functional.
 
 ### Command Line Interface
 
-Control Cosmic Eyes from your terminal:
+The CLI provides a structured interface for break control:
 
 ```bash
-# Start a break immediately
+# The CLI commands are defined and parse correctly
+# D-Bus communication with the applet is pending implementation
+
+# Start a break immediately (outputs confirmation message)
 cosmic-eyes-cli break short
 cosmic-eyes-cli break long
 
@@ -132,22 +146,22 @@ cosmic-eyes-cli skip
 cosmic-eyes-cli postpone short
 cosmic-eyes-cli postpone long
 
-# Check current status
+# Check current status (shows placeholder data)
 cosmic-eyes-cli status
 
-# Pause timer (e.g., during a meeting)
+# Pause/resume timer
 cosmic-eyes-cli pause
-
-# Resume timer
 cosmic-eyes-cli resume
 
-# View current configuration
+# View current configuration (shows placeholder)
 cosmic-eyes-cli config
 
-# Modify configuration
+# Modify configuration (planned)
 cosmic-eyes-cli set short_break.interval 15
 cosmic-eyes-cli set strict_mode true
 ```
+
+> **CLI Status**: Commands are structured and ready. Full functionality requires D-Bus IPC implementation to communicate with the running applet. Currently outputs placeholder messages for testing the interface.
 
 ## ⚙️ Configuration
 
@@ -167,9 +181,9 @@ Config(
         duration: 300,     // 5 minutes long
         enabled: true,
     ),
-    idle_detection: true,
-    idle_threshold: 300,   // 5 minutes idle before pausing
-    notification_before_break: 10,  // 10 second warning
+    idle_detection: true,  // Config ready, system integration pending
+    idle_threshold: 300,   // 5 minutes (when idle detection is implemented)
+    notification_before_break: 10,  // 10 seconds (implementation pending)
     allow_skip: true,
     allow_postpone: true,
     postpone_duration: 5,  // Postpone by 5 minutes
@@ -179,29 +193,33 @@ Config(
 
 ### Editing Configuration
 
-1. **Manually**: Edit `~/.config/cosmic-eyes/config.ron`
-2. **Via CLI**: Use `cosmic-eyes-cli set <key> <value>`
-3. **Via UI**: Settings panel (coming soon)
+1. **Manually**: Edit `~/.config/cosmic-eyes/config.ron` ✅
+   - Changes are loaded on applet restart
+   - Configuration parsing and saving is fully functional
+2. **Via CLI**: `cosmic-eyes-cli set <key> <value>` 🚧 (planned)
+3. **Via UI**: Settings panel (planned for future release)
 
-After editing, the applet will automatically reload the configuration.
+The configuration system with RON format is fully implemented. Auto-reload functionality for manual edits is planned.
 
 ### Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `short_break.interval` | minutes | 20 | Time between short breaks |
-| `short_break.duration` | seconds | 20 | Length of short break |
-| `short_break.enabled` | bool | true | Enable short breaks |
-| `long_break.interval` | minutes | 60 | Time between long breaks |
-| `long_break.duration` | seconds | 300 | Length of long break |
-| `long_break.enabled` | bool | true | Enable long breaks |
-| `idle_detection` | bool | true | Pause timers when idle |
-| `idle_threshold` | seconds | 300 | Idle time before pausing |
-| `notification_before_break` | seconds | 10 | Warning time before break |
-| `allow_skip` | bool | true | Allow skipping breaks |
-| `allow_postpone` | bool | true | Allow postponing breaks |
-| `postpone_duration` | minutes | 5 | How long to postpone |
-| `strict_mode` | bool | false | Enforce breaks (no skip/postpone) |
+| Option | Type | Default | Description | Status |
+|--------|------|---------|-------------|--------|
+| `short_break.interval` | minutes | 20 | Time between short breaks | ✅ Used |
+| `short_break.duration` | seconds | 20 | Length of short break | ✅ Used |
+| `short_break.enabled` | bool | true | Enable short breaks | ✅ Used |
+| `long_break.interval` | minutes | 60 | Time between long breaks | ✅ Used |
+| `long_break.duration` | seconds | 300 | Length of long break | ✅ Used |
+| `long_break.enabled` | bool | true | Enable long breaks | ✅ Used |
+| `idle_detection` | bool | true | Pause timers when idle | 🚧 Pending |
+| `idle_threshold` | seconds | 300 | Idle time before pausing | 🚧 Pending |
+| `notification_before_break` | seconds | 10 | Warning time before break | 🚧 Pending |
+| `allow_skip` | bool | true | Allow skipping breaks | ✅ Used |
+| `allow_postpone` | bool | true | Allow postponing breaks | ✅ Used |
+| `postpone_duration` | minutes | 5 | How long to postpone | ✅ Used |
+| `strict_mode` | bool | false | Enforce breaks (no skip/postpone) | ✅ Used |
+
+**Legend**: ✅ Fully implemented and used | 🚧 Configuration ready, feature integration pending
 
 ## 🛠️ Development
 
@@ -254,11 +272,11 @@ cosmic-eyes/
 
 Cosmic Eyes uses a modular architecture:
 
-- **Timer Service**: Manages break intervals with async Rust (tokio)
-- **Config System**: RON format for human-readable settings
-- **Applet**: libcosmic-based panel integration with MVU pattern
-- **Break Screen**: Fullscreen overlay during breaks
-- **CLI**: Command-line interface with D-Bus IPC
+- **Timer Service**: Manages break intervals with async Rust (tokio) ✅
+- **Config System**: RON format for human-readable settings ✅
+- **Applet**: libcosmic-based panel integration with MVU pattern ✅
+- **Break Screen**: Fullscreen overlay during breaks ✅
+- **CLI**: Command-line interface with D-Bus IPC architecture 🚧
 
 For detailed development information, see [CLAUDE.md](CLAUDE.md).
 
