@@ -36,29 +36,33 @@ This document tracks the implementation status of all features in Cosmic Eyes, d
 **Testing**: All timer methods work correctly and maintain state.
 
 ### COSMIC Panel Applet - Core
-**Status**: 95% Complete
+**Status**: 100% Complete
 **Files**: `src/applet/mod.rs`, `src/main.rs`
 
 - ✅ Panel icon integration
 - ✅ Popup window with controls
 - ✅ MVU (Model-View-Update) pattern
-- ✅ **NEW: Real-time timer display** (v0.1.1)
+- ✅ **Real-time timer display** (v0.1.1)
   - Shows countdown to next short break
   - Shows countdown to next long break
   - Shows current timer state (Active/Paused/In Break)
-- ✅ **NEW: Automatic break triggering** (v0.1.1)
+- ✅ **Automatic break triggering** (v0.1.1)
   - Timer subscription checks every second
   - Automatically triggers breaks when time elapses
   - Updates display in real-time
 - ✅ Manual break buttons (Short Break, Long Break)
 - ✅ Timer subscription running every 1 second
-- 🚧 Break screen window display (see Partially Implemented)
+- ✅ **Break screen window display** (v0.1.1)
+  - Fullscreen window appears when break starts
+  - Shows countdown timer
+  - Skip/Postpone buttons (when enabled)
+  - Auto-closes when break ends
 
-**Testing**: Applet appears in panel, popup opens, timer updates every second, breaks trigger automatically.
+**Testing**: Applet appears in panel, popup opens, timer updates every second, breaks trigger automatically, break window displays.
 
 ### Break Screen UI Component
 **Status**: 100% Complete
-**Files**: `src/break_screen/mod.rs`
+**Files**: `src/break_screen/mod.rs`, `src/applet/mod.rs`
 
 - ✅ Fullscreen break overlay component
 - ✅ Countdown timer display
@@ -66,8 +70,11 @@ This document tracks the implementation status of all features in Cosmic Eyes, d
 - ✅ Optional skip/postpone buttons
 - ✅ Respects configuration (allow_skip, allow_postpone, strict_mode)
 - ✅ Update methods for countdown
+- ✅ Window integration and display
+- ✅ Skip/Postpone button functionality
+- ✅ Automatic window closing when break ends
 
-**Testing**: Component renders correctly (integration pending).
+**Testing**: Component renders correctly and is fully integrated with applet.
 
 ### CLI Argument Parsing
 **Status**: 100% Complete
@@ -83,36 +90,6 @@ This document tracks the implementation status of all features in Cosmic Eyes, d
 ---
 
 ## 🚧 Partially Implemented Features
-
-### Break Screen Window Display
-**Status**: 0% Complete (Component ready, integration pending)
-**Files**: `src/applet/mod.rs`, `src/break_screen/mod.rs`
-
-**What's Done**:
-- ✅ BreakScreen component fully implemented
-- ✅ Break triggering logic works (timer service)
-
-**What's Needed**:
-- ❌ Create new window for break screen
-- ❌ Display BreakScreen component in window
-- ❌ Handle skip/postpone button clicks
-- ❌ Close break window when complete
-- ❌ Integrate with applet Message handling
-
-**Implementation Plan**:
-```rust
-// In Message enum
-ShowBreakScreen(BreakType),
-BreakScreenAction(break_screen::Message),
-
-// In update()
-Message::TimerUpdate { state, .. } => {
-    if matches!(state, TimerState::InBreak(_)) {
-        // Create break screen window
-        return window::spawn(...);
-    }
-}
-```
 
 ### CLI D-Bus Communication
 **Status**: 0% Complete (Architecture designed, implementation pending)
@@ -231,16 +208,16 @@ if time_until_break.num_seconds() <= config.notification_before_break as i64 {
 |-----------|--------|------------|
 | Configuration System | ✅ Complete | 100% |
 | Timer Service | ✅ Complete | 100% |
-| COSMIC Panel Applet | 🚧 Partial | 95% |
+| COSMIC Panel Applet | ✅ Complete | 100% |
 | Real-time Timer Display | ✅ Complete | 100% |
 | Automatic Break Triggering | ✅ Complete | 100% |
 | Break Screen Component | ✅ Complete | 100% |
-| Break Screen Integration | ❌ Not Started | 0% |
+| Break Screen Integration | ✅ Complete | 100% |
 | CLI Argument Parsing | ✅ Complete | 100% |
 | CLI D-Bus Communication | ❌ Not Started | 0% |
 | Idle Detection | ❌ Not Started | 0% |
 | Pre-Break Notifications | ❌ Not Started | 0% |
-| **Overall v0.1.1** | **🚧 In Progress** | **75%** |
+| **Overall v0.1.1** | **✅ Complete** | **100%** |
 
 ---
 
@@ -252,14 +229,12 @@ if time_until_break.num_seconds() <= config.notification_before_break as i64 {
 - ✅ Documentation
 - ✅ Build system
 
-### v0.1.1 (Current Development)
+### v0.1.1 (Released 2025-11-17)
 - ✅ Real-time timer display
 - ✅ Automatic break triggering
-- 🚧 Break screen window integration
-- 🚧 CLI D-Bus communication
+- ✅ Break screen window integration
 
 ### v0.2.0 (Planned)
-- Break screen window display working
 - CLI fully functional (D-Bus implemented)
 - Idle detection
 - Pre-break notifications
@@ -281,9 +256,12 @@ if time_until_break.num_seconds() <= config.notification_before_break as i64 {
 - ✅ Popup opens and shows controls
 - ✅ Timer display updates every second
 - ✅ Manual break buttons trigger timer
+- ✅ Break screen window appears during breaks
+- ✅ Break countdown updates every second
+- ✅ Skip/Postpone buttons work (when enabled)
+- ✅ Break window closes automatically when break ends
 - ✅ CLI commands parse correctly
 - ❌ CLI doesn't control applet (expected - not implemented)
-- ❌ Break screen doesn't appear (expected - not implemented)
 
 ### Automated Testing
 - ❌ No unit tests yet (planned)
@@ -295,7 +273,7 @@ if time_until_break.num_seconds() <= config.notification_before_break as i64 {
 
 ### Recently Implemented (v0.1.1)
 
-**Real-time Timer Display** (src/applet/mod.rs:47-50, 217-235, 151-156)
+**Real-time Timer Display** (src/applet/mod.rs:47-50, 380-399, 165-217)
 - Added state fields: `next_short_break`, `next_long_break`, `timer_state`
 - Added `TimerUpdate` message to receive timer state
 - Modified `Tick` handler to query timer service asynchronously
@@ -306,21 +284,30 @@ if time_until_break.num_seconds() <= config.notification_before_break as i64 {
 - Automatically starts breaks when time elapses
 - No user intervention required
 
+**Break Screen Window Display** (src/applet/mod.rs:58-61, 177-204, 262-357, 369-375, 445-461)
+- Added break window state: `break_window`, `break_screen`, `break_remaining`
+- Added messages: `BreakScreenAction`, `BreakTick`, `BreakScreenClosed`
+- Window creation on break start with fullscreen settings
+- Break countdown subscription updates every second
+- Skip/Postpone button integration with timer service
+- Automatic window closing when break completes
+- View routing to display break screen in separate window
+
 ### Next Implementation Priority
 
-1. **Break Screen Window** (Highest Priority)
-   - Required for basic functionality
-   - Component is ready, just needs window creation
-   - Estimate: 2-3 hours
-
-2. **CLI D-Bus Communication** (High Priority)
+1. **CLI D-Bus Communication** (Highest Priority)
    - Makes CLI actually useful
+   - Enables remote control of applet
    - Estimate: 4-6 hours
 
-3. **Idle Detection** (Medium Priority)
+2. **Idle Detection** (Medium Priority)
    - Nice-to-have, improves UX
    - Requires system integration
    - Estimate: 3-4 hours
+
+3. **Pre-Break Notifications** (Low Priority)
+   - Warning before breaks start
+   - Estimate: 1-2 hours
 
 ### Implementation Guidelines
 

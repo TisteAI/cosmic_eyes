@@ -39,13 +39,16 @@ Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the grou
     - Breaks start automatically when timers expire
     - No manual intervention needed
   - Quick action buttons for manual breaks ✅
-  - 🚧 Break screen window display (component ready, integration pending)
 
-- **Break Screen UI** ✅
-  - Fullscreen break overlay component
-  - Countdown timer display
+- **Break Screen Display** ✅ **[NEW in v0.1.1]** **[IMPLEMENTED]**
+  - Fullscreen break window appears automatically during breaks
+  - Large countdown timer display (updates every second)
   - Contextual messages for break types
+    - "Time for a short break! Look away from your screen and rest your eyes"
+    - "Time for a long break! Stand up, stretch, and take a walk"
   - Optional skip/postpone buttons (respects configuration)
+  - Automatic window closing when break completes
+  - Fully integrated with timer service
 
 - **CLI Interface** 🚧
   - Command structure with clap-based argument parsing ✅
@@ -60,8 +63,7 @@ Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the grou
   - Auto-save and auto-load functionality
 
 - **Pending Integration** 🚧
-  - Break screen window display (next priority)
-  - CLI-to-applet D-Bus communication
+  - CLI-to-applet D-Bus communication (next priority)
   - Idle detection (config ready, system integration pending)
   - Pre-break notifications (config ready, implementation pending)
 
@@ -123,17 +125,22 @@ just run
 ### Panel Applet
 
 - **Click/Hover** the Cosmic Eyes icon in your panel to open controls
+- **View Timer**: Real-time countdown to next short and long breaks (updates every second)
 - **Start Break**: Click "Short Break" or "Long Break" buttons to trigger breaks manually
-- **View Timer** (integration pending): Real-time countdown display coming in future update
+- **Check Status**: See current state (Active, Paused, In Break, etc.)
 
 ### During a Break
 
-The break screen component provides:
-- Fullscreen overlay with countdown timer
-- Break type indication and suggested activity messages
+When a break starts (automatically or manually), a fullscreen window appears with:
+- Large countdown timer (updates every second)
+- Break type indication: "Time for a short break!" or "Time for a long break!"
+- Suggested activity messages:
+  - Short breaks: "Look away from your screen and rest your eyes"
+  - Long breaks: "Stand up, stretch, and take a walk"
 - Optional **Skip** or **Postpone** buttons (if enabled in config)
+- Automatic window closing when the break completes
 
-> **Note**: Break triggering integration is in progress. Manual break activation via UI buttons is functional.
+> **Status**: Fully functional! Break windows appear automatically when timers expire or when you manually trigger them.
 
 ### Command Line Interface
 
