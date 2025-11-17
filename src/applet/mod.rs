@@ -96,7 +96,7 @@ impl cosmic::Application for CosmicEyes {
                     self.popup = Some(new_id);
 
                     let mut popup_settings = self.core.applet.get_popup_settings(
-                        SurfaceId::MAIN,
+                        window::Id::MAIN,
                         new_id,
                         None,
                         None,
@@ -181,10 +181,12 @@ impl cosmic::Application for CosmicEyes {
             .spacing(spacing.space_m)
             .padding(spacing.space_m)
             .push(
-                widget::text("Cosmic Eyes")
-                    .size(24)
-                    .width(Length::Fill)
-                    .horizontal_alignment(Horizontal::Center)
+                widget::container(
+                    widget::text("Cosmic Eyes")
+                        .size(24)
+                )
+                .width(Length::Fill)
+                .center_x(Length::Fill)
             )
             .push(widget::divider::horizontal::default())
             .push(
@@ -224,7 +226,7 @@ impl cosmic::Application for CosmicEyes {
             .map(|_| Message::Tick)
     }
 
-    fn style(&self) -> Option<<Theme as cosmic::iced_runtime::core::application::StyleSheet>::Style> {
+    fn style(&self) -> Option<cosmic::iced_runtime::Appearance> {
         Some(cosmic::applet::style())
     }
 }
