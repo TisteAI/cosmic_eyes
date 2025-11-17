@@ -17,12 +17,15 @@ Config(
     ),
 
     // Enable idle detection to pause timers when you're away
+    // NOTE: Configuration ready, system integration pending (v0.1.0)
     idle_detection: true,
 
     // How many seconds of idle time before pausing timers
+    // NOTE: Will be used when idle detection is implemented
     idle_threshold: 300,   // 5 minutes
 
     // Show notification this many seconds before break starts
+    // NOTE: Configuration ready, notification system pending (v0.1.0)
     notification_before_break: 10,
 
     // Allow users to skip breaks

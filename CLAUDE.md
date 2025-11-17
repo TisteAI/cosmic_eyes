@@ -6,38 +6,70 @@
 
 The application is inspired by tools like Workrave and SafeEyes, but built natively for COSMIC Desktop using Rust and libcosmic.
 
+## Implementation Status (v0.1.0)
+
+This is an **alpha release** establishing the project architecture. The codebase contains:
+
+### ✅ Fully Implemented
+- Configuration system with RON format (parsing, saving, loading)
+- Timer service with thread-safe state management
+- Break scheduling logic (intervals, durations, state transitions)
+- COSMIC Panel applet structure with popup window
+- Break screen UI component with countdown display
+- CLI argument parsing with clap (command structure)
+- Project documentation and build system
+
+### 🚧 Partial / Integration Needed
+- **Real-time timer display**: Logic exists, UI integration pending
+- **Automatic break triggering**: Check logic ready, subscription integration needed
+- **CLI-to-applet communication**: D-Bus architecture designed, implementation pending
+- **Idle detection**: Configuration ready, system API integration needed
+- **Pre-break notifications**: Configuration ready, notification system pending
+
+### 📝 Design/Planning Phase
+- Statistics tracking
+- Plugin system
+- Multi-monitor support
+- Smart scheduling
+- Advanced notification system
+
+This document describes both **implemented features** and **architectural design** for planned features. When in doubt about implementation status, check the source code or see the status indicators above.
+
 ## Architecture
 
 ### Core Components
 
-1. **Timer Service** (`src/timer.rs`)
+1. **Timer Service** (`src/timer.rs`) ✅
    - Manages break intervals using async Rust with tokio
    - Tracks time until next short and long breaks
    - Handles break state: Running, Paused, InBreak, Postponed
    - Thread-safe using Arc<RwLock<T>> for shared state
+   - Methods: `start_break()`, `end_break()`, `skip_break()`, `postpone_break()`, `pause()`, `resume()`
 
-2. **Configuration** (`src/config.rs`)
+2. **Configuration** (`src/config.rs`) ✅
    - RON format for human-readable configuration
    - Stored in `~/.config/cosmic-eyes/config.ron`
    - Supports short and long break settings
-   - Configurable idle detection and break policies
+   - Configuration fields for idle detection and break policies (integration pending)
 
-3. **Applet** (`src/applet/mod.rs`)
-   - COSMIC Panel integration using libcosmic
-   - Icon button in panel + popup window for controls
-   - MVU (Model-View-Update) pattern from iced
-   - Timer subscription for real-time updates
+3. **Applet** (`src/applet/mod.rs`) 🚧
+   - COSMIC Panel integration using libcosmic ✅
+   - Icon button in panel + popup window for controls ✅
+   - MVU (Model-View-Update) pattern from iced ✅
+   - Timer subscription exists, display integration pending 🚧
+   - Quick action buttons functional ✅
 
-4. **Break Screen** (`src/break_screen/mod.rs`)
-   - Fullscreen overlay during breaks
-   - Shows countdown timer
-   - Optional skip/postpone buttons (respects strict mode)
-   - Exercise suggestions and break tips
+4. **Break Screen** (`src/break_screen/mod.rs`) ✅
+   - Fullscreen overlay component structure
+   - Countdown timer display UI
+   - Optional skip/postpone buttons (respects config)
+   - Break type messages ("Time for a short break!", etc.)
 
-5. **CLI Interface** (`src/cli/main.rs`)
-   - Command-line control using clap
-   - D-Bus IPC for communicating with running applet
-   - Commands: break, skip, postpone, status, pause, resume
+5. **CLI Interface** (`src/cli/main.rs`) 🚧
+   - Command-line parsing using clap ✅
+   - Command structure defined (break, skip, postpone, status, pause, resume) ✅
+   - D-Bus IPC architecture designed 🚧
+   - Currently outputs placeholder messages for testing
 
 ### Technology Stack
 
@@ -63,10 +95,21 @@ Two independent break types with separate timers:
 - **Postpone**: Delay break by configurable duration (default: 5 min)
 - **Strict Mode**: Disable skip/postpone for enforced breaks
 
-### 3. Idle Detection
+### 3. Idle Detection 🚧
+**Status**: Configuration ready, system integration pending
+
+**Design**:
 - Monitor user activity to pause timers when idle
 - Configurable idle threshold (default: 5 minutes)
 - Prevents break notifications during natural breaks
+
+**Implementation needs**:
+- Query system idle time via D-Bus (`org.freedesktop.ScreenSaver`)
+- Or use Wayland `ext-idle-notify-v1` protocol
+- Or X11 XScreenSaver extension for X11 sessions
+- Periodic check in applet subscription
+- Auto-call `timer.pause()` when threshold exceeded
+- Auto-call `timer.resume()` when activity detected
 
 ### 4. State Management
 Using Arc<RwLock<T>> pattern for thread-safe state:
@@ -134,46 +177,70 @@ Config(
 
 ## CLI Usage
 
+**Current Status**: Command structure implemented, D-Bus communication pending
+
+The CLI currently accepts all commands and outputs placeholder messages:
+
 ```bash
-# Start a break immediately
+# Start a break immediately (outputs confirmation)
 cosmic-eyes-cli break short
 cosmic-eyes-cli break long
 
-# Skip current break
+# Skip current break (outputs confirmation)
 cosmic-eyes-cli skip
 
-# Postpone next break
+# Postpone next break (outputs confirmation)
 cosmic-eyes-cli postpone short
 cosmic-eyes-cli postpone long
 
-# Check status
+# Check status (shows placeholder data)
 cosmic-eyes-cli status
 
-# Pause/resume timers
+# Pause/resume timers (outputs confirmation)
 cosmic-eyes-cli pause
 cosmic-eyes-cli resume
 
-# View configuration
+# View configuration (shows placeholder)
 cosmic-eyes-cli config
 
-# Set configuration values
+# Set configuration values (planned)
 cosmic-eyes-cli set short_break.interval 15
 cosmic-eyes-cli set strict_mode true
 ```
 
+**To make CLI functional**, implement D-Bus interface in `src/cli/main.rs`:
+- Uncomment and complete `send_dbus_command()` function
+- Implement `get_dbus_status()` and `get_dbus_config()` functions
+- Define D-Bus interface in applet for receiving commands
+- See `zbus` documentation for examples
+
 ## Building and Development
 
 ### Prerequisites
+
+**System Dependencies**:
+```bash
+# Debian/Ubuntu
+sudo apt install libxkbcommon-dev wayland-protocols-devel \
+                 libwayland-dev pkg-config
+
+# Fedora
+sudo dnf install libxkbcommon-devel wayland-protocols-devel \
+                 wayland-devel pkgconfig
+```
+
+**Rust Toolchain**:
 ```bash
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Install just (task runner)
 cargo install just
-
-# Install COSMIC libraries (on Pop!_OS or COSMIC-enabled distro)
-# libcosmic will be fetched from GitHub during build
 ```
+
+**COSMIC Desktop**:
+- libcosmic will be fetched from GitHub during build
+- Requires COSMIC Desktop environment for applet functionality
 
 ### Build Commands
 ```bash

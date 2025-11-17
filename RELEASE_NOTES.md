@@ -34,11 +34,11 @@ This initial v0.1.0 release establishes the complete project architecture and im
 - Time tracking and break scheduling logic
 
 #### 3. COSMIC Panel Applet (`src/applet/mod.rs`)
-- Panel icon with hover popup
-- Timer display and status information
-- Quick action buttons (Start Break, etc.)
-- Real-time updates via subscription
-- Proper COSMIC applet integration
+- Panel icon with hover popup ✅
+- Timer information structure ✅
+- Quick action buttons (Start Break, etc.) ✅
+- Timer subscription (display integration pending) 🚧
+- Proper COSMIC applet integration ✅
 
 #### 4. Break Screen UI (`src/break_screen/mod.rs`)
 - Fullscreen break overlay
@@ -90,11 +90,12 @@ This initial v0.1.0 release establishes the complete project architecture and im
 - CLI argument parsing
 - Comprehensive documentation
 
-### 🚧 In Progress
-- D-Bus IPC communication between CLI and applet
-- Automatic break triggering integration
-- Real-time timer display updates
-- Idle detection system integration
+### 🚧 Integration Needed
+- **D-Bus IPC**: CLI-to-applet communication (architecture designed)
+- **Break Triggering**: Automatic timer-based break activation
+- **Timer Display**: Real-time countdown in applet popup
+- **Idle Detection**: System API integration for activity monitoring
+- **Notifications**: Pre-break warning system
 
 ### 📅 Planned for Future Releases
 - Statistics tracking (breaks taken/skipped, streaks)

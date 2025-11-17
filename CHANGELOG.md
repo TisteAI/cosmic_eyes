@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Native COSMIC Desktop panel integration
 - Icon button in system panel
 - Popup window with timer information and controls
-- Real-time timer updates via subscription
+- Timer subscription structure (display integration pending)
 - Quick action buttons for manual break triggering
 - Proper applet desktop entry configuration
 
@@ -104,10 +104,12 @@ This release represents the **architectural and design phase** of Cosmic Eyes:
 ### Known Limitations
 
 - D-Bus communication between CLI and applet requires implementation
-- Idle detection logic needs system integration
-- Automatic break triggering needs integration with timer subscription
+- Idle detection configuration ready but system API integration needed
+- Automatic break triggering logic ready but subscription integration needed
+- Real-time timer display in applet popup needs integration
+- Pre-break notification system pending implementation
 - Author information in Cargo.toml needs customization
-- Build requires system dependencies not documented in README (now addressed)
+- Build requires system libraries: libxkbcommon, wayland-protocols, libwayland (documented in Prerequisites)
 
 ### Notes for Users
 
