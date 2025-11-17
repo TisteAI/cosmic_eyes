@@ -57,7 +57,7 @@ impl BreakScreen {
 
         let mut content = widget::column()
             .spacing(20)
-            .align_items(cosmic::iced::Alignment::Center)
+            .align_x(cosmic::iced::alignment::Horizontal::Center)
             .push(
                 widget::text(title)
                     .size(48)
@@ -98,8 +98,8 @@ impl BreakScreen {
         container(content)
             .width(Length::Fill)
             .height(Length::Fill)
-            .center_x()
-            .center_y()
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
             .into()
     }
 

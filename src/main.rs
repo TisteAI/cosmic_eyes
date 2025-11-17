@@ -17,5 +17,5 @@ fn main() -> cosmic::iced::Result {
     });
 
     // Run the applet
-    cosmic::applet::run::<CosmicEyes>(true, config)
+    cosmic::applet::run::<CosmicEyes>(config)
 }
