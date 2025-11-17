@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Cosmic Eyes
+Comment=Break reminder to prevent eye strain and promote healthy work habits
+Icon=cosmic-eyes
+Exec=cosmic-eyes
+Terminal=false
+Categories=Utility;
+Keywords=break;reminder;health;eyes;RSI;
+
+# COSMIC Panel Applet Configuration
+NoDisplay=true
+X-CosmicApplet=true
+X-CosmicHoverPopup=Auto
+X-OverflowPriority=10
