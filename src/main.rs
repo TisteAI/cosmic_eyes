@@ -2,6 +2,9 @@ mod applet;
 mod break_screen;
 mod config;
 mod timer;
+mod dbus;
+mod idle;
+mod notify;
 
 use applet::CosmicEyes;
 use config::Config;

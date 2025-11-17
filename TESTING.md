@@ -150,10 +150,11 @@ After installation, restart the COSMIC Panel to load the applet:
 
 ```bash
 # Restart panel to pick up new applet
-systemctl --user restart cosmic-panel
+pkill cosmic-panel
 
 # OR if that doesn't work, restart the entire COSMIC session:
-# Log out and log back in
+systemctl --user restart cosmic-session
+# OR: Log out and log back in
 ```
 
 ### Verify Applet Loaded
@@ -258,7 +259,7 @@ Currently, you need to restart the applet:
 pkill cosmic-eyes
 
 # Restart COSMIC Panel (will restart applet)
-systemctl --user restart cosmic-panel
+pkill cosmic-panel
 ```
 
 ### 3. Verify Changes
@@ -339,7 +340,7 @@ cat ~/.local/share/applications/cosmic-eyes.desktop
 
 **Restart panel:**
 ```bash
-systemctl --user restart cosmic-panel
+pkill cosmic-panel
 ```
 
 ### Build Fails with Missing Libraries
@@ -467,7 +468,7 @@ rm ~/.local/share/icons/hicolor/scalable/apps/cosmic-eyes.svg
 rm -rf ~/.config/cosmic-eyes/
 
 # Restart panel
-systemctl --user restart cosmic-panel
+pkill cosmic-panel
 ```
 
 ---

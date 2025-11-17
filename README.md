@@ -6,15 +6,15 @@ Cosmic Eyes is a native break reminder application for the COSMIC Desktop enviro
 
 Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the ground up using Rust and libcosmic for seamless integration with the COSMIC Desktop experience.
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![License](https://img.shields.io/badge/license-GPL--3.0-green)
 ![Platform](https://img.shields.io/badge/platform-COSMIC%20Desktop-purple)
 
 ## ✨ Features
 
-### Current Features (v0.1.1)
+### Current Features (v0.2.0)
 
-> **Status Update**: v0.1.1 implements core timer functionality! The applet now shows real-time countdowns and automatically triggers breaks. See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for detailed implementation tracking.
+> **Status Update**: v0.2.0 is FEATURE-COMPLETE! All core features are now implemented: real-time timers, automatic breaks, CLI control, idle detection, and pre-break notifications. See [WHAT_WORKS.md](WHAT_WORKS.md) for testing guide.
 
 - **Dual Break System** ✅
   - Short breaks: Quick eye rest (default: every 20 min, 20 sec)
@@ -39,19 +39,35 @@ Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the grou
     - Breaks start automatically when timers expire
     - No manual intervention needed
   - Quick action buttons for manual breaks ✅
-  - 🚧 Break screen window display (component ready, integration pending)
 
-- **Break Screen UI** ✅
-  - Fullscreen break overlay component
-  - Countdown timer display
+- **Break Screen Display** ✅ **[NEW in v0.1.1]** **[IMPLEMENTED]**
+  - Fullscreen break window appears automatically during breaks
+  - Large countdown timer display (updates every second)
   - Contextual messages for break types
+    - "Time for a short break! Look away from your screen and rest your eyes"
+    - "Time for a long break! Stand up, stretch, and take a walk"
   - Optional skip/postpone buttons (respects configuration)
+  - Automatic window closing when break completes
+  - Fully integrated with timer service
 
-- **CLI Interface** 🚧
+- **CLI Interface** ✅ **[NEW in v0.2.0]** **[FULLY FUNCTIONAL]**
   - Command structure with clap-based argument parsing ✅
-  - Subcommands defined (break, skip, postpone, status, etc.) ✅
-  - D-Bus IPC architecture designed (implementation pending)
-  - Currently outputs placeholder messages
+  - All subcommands working: break, skip, postpone, status, pause, resume ✅
+  - D-Bus IPC for applet communication ✅
+  - Real-time status querying with actual timer values ✅
+  - Remote control from terminal ✅
+
+- **Idle Detection** ✅ **[NEW in v0.2.0]** **[FULLY FUNCTIONAL]**
+  - Monitors system activity via D-Bus ScreenSaver
+  - Auto-pauses timer when idle (configurable threshold: default 5 minutes)
+  - Auto-resumes when activity detected
+  - Graceful fallback if screensaver service unavailable
+
+- **Pre-Break Notifications** ✅ **[NEW in v0.2.0]** **[FULLY FUNCTIONAL]**
+  - Desktop notifications via D-Bus Notifications
+  - Warns before breaks (configurable: default 10 seconds)
+  - Separate notifications for short and long breaks
+  - Automatic notification reset after break passes
 
 - **Configuration System** ✅
   - RON-based human-readable configuration
@@ -59,21 +75,16 @@ Inspired by tools like Workrave and SafeEyes, Cosmic Eyes is built from the grou
   - Customizable break intervals and durations
   - Auto-save and auto-load functionality
 
-- **Pending Integration** 🚧
-  - Break screen window display (next priority)
-  - CLI-to-applet D-Bus communication
-  - Idle detection (config ready, system integration pending)
-  - Pre-break notifications (config ready, implementation pending)
+### Planned Features (v0.3.0+)
 
-### Planned Features
-
+- [ ] Statistics and tracking (breaks taken, skipped, longest streak)
+- [ ] Settings UI panel (GUI configuration editor)
 - [ ] Break exercises and suggestions
-- [ ] Statistics and tracking
+- [ ] Sound effects
 - [ ] Calendar/meeting integration
 - [ ] Multi-monitor support
 - [ ] Plugin system for custom break activities
 - [ ] Focus mode / Pomodoro integration
-- [ ] Sound effects and custom notifications
 - [ ] Auto-skip during video calls (webcam detection)
 
 ## 🚀 Installation
@@ -105,7 +116,13 @@ sudo just install
 
 4. Restart COSMIC Panel:
 ```bash
-systemctl --user restart cosmic-panel
+# Method 1: Kill the panel process (recommended - session manager will restart it)
+pkill cosmic-panel
+
+# Method 2: If using systemd session
+systemctl --user restart cosmic-session
+
+# Method 3: Log out and log back in to COSMIC Desktop
 ```
 
 The Cosmic Eyes icon should now appear in your COSMIC Panel!
@@ -123,17 +140,22 @@ just run
 ### Panel Applet
 
 - **Click/Hover** the Cosmic Eyes icon in your panel to open controls
+- **View Timer**: Real-time countdown to next short and long breaks (updates every second)
 - **Start Break**: Click "Short Break" or "Long Break" buttons to trigger breaks manually
-- **View Timer** (integration pending): Real-time countdown display coming in future update
+- **Check Status**: See current state (Active, Paused, In Break, etc.)
 
 ### During a Break
 
-The break screen component provides:
-- Fullscreen overlay with countdown timer
-- Break type indication and suggested activity messages
+When a break starts (automatically or manually), a fullscreen window appears with:
+- Large countdown timer (updates every second)
+- Break type indication: "Time for a short break!" or "Time for a long break!"
+- Suggested activity messages:
+  - Short breaks: "Look away from your screen and rest your eyes"
+  - Long breaks: "Stand up, stretch, and take a walk"
 - Optional **Skip** or **Postpone** buttons (if enabled in config)
+- Automatic window closing when the break completes
 
-> **Note**: Break triggering integration is in progress. Manual break activation via UI buttons is functional.
+> **Status**: Fully functional! Break windows appear automatically when timers expire or when you manually trigger them.
 
 ### Command Line Interface
 
@@ -161,15 +183,9 @@ cosmic-eyes-cli status
 cosmic-eyes-cli pause
 cosmic-eyes-cli resume
 
-# View current configuration (shows placeholder)
-cosmic-eyes-cli config
-
-# Modify configuration (planned)
-cosmic-eyes-cli set short_break.interval 15
-cosmic-eyes-cli set strict_mode true
 ```
 
-> **CLI Status**: Commands are structured and ready. Full functionality requires D-Bus IPC implementation to communicate with the running applet. Currently outputs placeholder messages for testing the interface.
+> **CLI Status**: ✅ FULLY FUNCTIONAL! All commands work via D-Bus IPC and show real-time values from the applet.
 
 ## ⚙️ Configuration
 
