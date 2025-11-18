@@ -7,7 +7,6 @@ use cosmic::widget::{self, button};
 use cosmic::{Element, Theme};
 
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 use crate::config::Config;
 use crate::timer::{BreakType, TimerService, TimerState};
@@ -261,8 +260,9 @@ impl cosmic::Application for CosmicEyes {
 
                         let window_settings = window::Settings {
                             size: cosmic::iced::Size::new(800.0, 600.0),
-                            position: window::Position::Centered,
-                            decorations: false,
+                            position: window::Position::Default,
+                            decorations: true,
+                            resizable: true,
                             exit_on_close_request: false,
                             ..Default::default()
                         };

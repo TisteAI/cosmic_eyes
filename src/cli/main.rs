@@ -1,11 +1,6 @@
 use clap::{Parser, Subcommand};
 use zbus::{proxy, Connection};
 
-/// D-Bus service name
-const SERVICE_NAME: &str = "com.github.cosmiceyes";
-/// D-Bus object path
-const OBJECT_PATH: &str = "/com/github/cosmiceyes";
-
 /// D-Bus proxy for timer interface
 #[proxy(
     interface = "com.github.cosmiceyes.Timer",

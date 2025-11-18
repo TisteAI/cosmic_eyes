@@ -13,8 +13,8 @@ libcosmic = { git = "https://github.com/pop-os/libcosmic", features = ["applet",
 # CLI interface
 clap = { version = "4.5", features = ["derive"] }
 
-# Async runtime
-tokio = { version = "1.35", features = ["full"] }
+# Async runtime - optimized features
+tokio = { version = "1.35", features = ["rt-multi-thread", "macros", "sync", "time"] }
 
 # Serialization for config
 serde = { version = "1.0", features = ["derive"] }
@@ -23,11 +23,10 @@ ron = "0.8"
 # Time handling
 chrono = "0.4"
 
-# System integration
-zbus = "4.0"  # D-Bus for IPC and system integration
+# System integration - D-Bus for IPC
+zbus = "4.0"
 
-# Logging
-tracing = "0.1"
+# Logging - only subscriber needed
 tracing-subscriber = "0.3"
 
 # Directories
@@ -37,9 +36,11 @@ dirs = "5.0"
 lto = "fat"
 codegen-units = 1
 strip = true
+opt-level = 3
 
 [profile.dev]
 opt-level = 0
+incremental = true
 
 [[bin]]
 name = "cosmic-eyes"
