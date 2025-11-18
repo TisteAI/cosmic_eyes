@@ -7,7 +7,6 @@ use cosmic::widget::{self, button};
 use cosmic::{Element, Theme};
 
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 use crate::config::Config;
 use crate::timer::{BreakType, TimerService, TimerState};

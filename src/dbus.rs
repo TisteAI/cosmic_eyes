@@ -6,10 +6,8 @@ use crate::timer::{BreakType, TimerService, TimerState};
 use std::sync::Arc;
 use zbus::{interface, ConnectionBuilder};
 
-/// D-Bus service name
-pub const SERVICE_NAME: &str = "com.github.cosmiceyes";
-/// D-Bus object path
-pub const OBJECT_PATH: &str = "/com/github/cosmiceyes";
+const SERVICE_NAME: &str = "com.github.cosmiceyes";
+const OBJECT_PATH: &str = "/com/github/cosmiceyes";
 
 /// D-Bus interface for timer control
 pub struct TimerInterface {
